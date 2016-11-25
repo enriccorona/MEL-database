@@ -39,7 +39,7 @@ createRenderLayer -noRecurse -name DepthLayer  -global;
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Now by hand:
+// This has to be done by hand:
 // Channel Box / Layer Editor TAB -> Right click on DepthLayer -> Attributes -> Presets -> Luminance Depth
 // Now, rather execute:
 
@@ -59,8 +59,7 @@ createRenderLayer -noRecurse -name DepthLayer  -global;
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// Setting drag:
-
+// Setting drag - If you want even more images, add air!=0 to distort initially the garment:
 $aire = 0;
 drag -pos 0 0 0 -m 0.05 -att 1 -dx 0 -dy 0 -dz 0 -ud 0  -mxd -1  -vsh none -vex 0 -vof 0 0 0 -vsw 360 -tsr 0.5 ;
 
