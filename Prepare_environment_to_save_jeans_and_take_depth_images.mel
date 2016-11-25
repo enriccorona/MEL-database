@@ -1,0 +1,139 @@
+//Importar pantalons:
+
+string $cloth = "Jeans";
+file -import "/Users/ecorona/Downloads/jeans.obj";
+setAttr "defaultRenderGlobals.imageFormat" 4;
+string $cloth2 = $cloth
+
+// Seleccionar pantalons: 
+
+select -r $cloth ;
+
+// Canviar pantalons a ncloth:
+
+createNCloth 0;
+setAttr "nClothShape1.stretchResistance" 1;
+setAttr "nClothShape1.compressionResistance" 0.1;
+setAttr "nClothShape1.bendResistance" 0.025;
+
+int $k[] = `polyEvaluate -vertex $cloth`;
+
+// Create 36 cameras:
+
+for( $i=0; $i<36; ++$i){
+    camera -centerOfInterest 5 -focalLength 33.172 -lensSqueezeRatio 1 -cameraScale 1 -horizontalFilmAperture 1.41732 -horizontalFilmOffset 0 -verticalFilmAperture 0.94488 -verticalFilmOffset 0 -filmFit Fill -overscan 1 -motionBlur 0 -shutterAngle 144 -nearClipPlane 0.1 -farClipPlane 10000 -orthographic 0 -orthographicWidth 30 -panZoomEnabled 0 -horizontalPan 0 -verticalPan 0 -zoom 1  -horizontalFieldOfView 43 -verticalFieldOfView 57; objectMoveCommand; cameraMakeNode 1 "";
+    float $x = 150*cos (($i*10)*3.14159/180);
+    float $z = 150*sin (($i*10)*3.14159/180);
+    move -r $x 0 $z;
+    float $rotation = (90 - $i*10);
+    rotate -r -os -fo 0 $rotation 0;
+    string $instruction = "cameraShape"+($i+1) + ".mask";
+    setAttr $instruction 0;
+    string $instruction = "cameraShape"+($i+1) + ".locatorScale";
+    setAttr $instruction 10;
+}
+
+// Create DepthLayer
+
+createRenderLayer -noRecurse -name DepthLayer  -global;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Now by hand:
+// Channel Box / Layer Editor TAB -> Right click on DepthLayer -> Attributes -> Presets -> Luminance Depth
+// Now, rather execute:
+
+    disconnectAttr samplerInfo1.cameraNearClipPlane setRange1.oldMinX;
+    disconnectAttr samplerInfo1.cameraFarClipPlane setRange1.oldMaxX;
+
+    setAttr "setRange1.oldMinX" 120;
+    setAttr "setRange1.oldMaxX" 180;
+    setAttr "setRange1.oldMinY" 0;
+    setAttr "setRange1.oldMaxY" 0;
+    setAttr "setRange1.oldMinZ" 0;
+    setAttr "setRange1.oldMaxZ" 0;
+    
+// Or by hand: select setRange1 Tab -> Right click on Old Min -> Break connection, write 110; Right click on Old Max -> Break connection, write 180; 
+// Max could be 6500 to have an output of milimeters
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Setting drag:
+
+$aire = 0;
+drag -pos 0 0 0 -m 0.05 -att 1 -dx 0 -dy 0 -dz 0 -ud 0  -mxd -1  -vsh none -vex 0 -vof 0 0 0 -vsw 360 -tsr 0.5 ;
+
+// Open the file to write the position and orientation of interesting vertices
+$fileid = fopen("/Users/ecorona/Documents/Database/"+$cloth2+".csv");
+
+// Start the captures:
+
+for( $x = 0; $x < size($vertics_T_Shirt_1e); $x = $x+1){ //Condition: $x<$k[0]
+
+// Move jeans to the middle:
+    currentTime 1;
+    string $instruction = $cloth+".vtx[" + $vertics_T_Shirt_1e[$x] + "]";
+    float $pos[] = `pointPosition $instruction`;
+    select -r $cloth;
+    move -r (-1*$pos[0]) (60-1*$pos[1]) (-1*$pos[2]) ;
+    select -r $instruction; //$cloth.vtx[$vertics_T_Shirt_1e[$x]] ;
+    
+// Transform constraint:
+
+    createNConstraint transform 0;
+
+// Setting drag if there is.
+
+    if($aire == 1){
+        setAttr "dragField1.magnitude" -40;
+    }
+
+// Canviar el valor del temps: (S'ha de fer d'un en un)
+
+    for( $t=2; $t<1000; ++$t){
+        currentTime $t ;
+        if ($aire == 1 && $t == 100){
+            setAttr "dragField1.magnitude" 0;
+        }
+    }
+
+// Iterate cameras to take photos and save information:
+
+    for( $c=1; $c<=36; ++$c){
+        string $cam = "camera" + $c;
+        string $final_name = "/Users/ecorona/Documents/Database/" + $cloth2 + "_" + $x + "_" + $c + ".tif";
+        $direction = `render  $cam`; //render -layer DepthLayer $cam;
+        sysFile -move $final_name $direction;
+
+//Vertex 1 es 1018, per samarreta es 1146, Jumper 2733
+        string $instruction = $cloth + ".vtx[1018]"; 
+        $Vertex1_orientation = `polyNormalPerVertex -q -xyz $instruction`; 
+        string $instruction = $cloth+".vtx[2733]";
+        float $pos1[] = `pointPosition $instruction`;
+        $orientation_x1 = $Vertex1_orientation[0];
+        $orientation_y1 = $Vertex1_orientation[1];
+        $orientation_z1 = $Vertex1_orientation[2];
+        
+        
+//Vertex 2 es 979, per samarreta es 62, Jumper 2731
+        string $instruction = $cloth + ".vtx[979]"; 
+        $Vertex2_orientation = `polyNormalPerVertex -q -xyz $instruction`; 
+        string $instruction = $cloth+".vtx[2731]"; 
+        float $pos2[] = `pointPosition $instruction`;
+        $orientation_x2 = $Vertex2_orientation[0];
+        $orientation_y2 = $Vertex2_orientation[1];
+        $orientation_z2 = $Vertex2_orientation[2];
+        // Guardar posicio i orientacio dels punts en arxiu .csv
+        fprint $fileid($x+","+$c+","+$pos1[0]+","+$pos1[1]+","+$pos1[2]+","+$orientation_x1+","+$orientation_y1+","+$orientation_z1+","+$pos2[0]+","+$pos2[1]+","+$pos2[2]+","+$orientation_x2+","+$orientation_y2+","+$orientation_z2+"\n");
+
+                }
+    
+// Delete constraint:
+    
+    string $instruction = "dynamicConstraint"+1;//+($x+91);
+    select -r $instruction;
+    doDelete;
+}
+
+fclose $fileid;

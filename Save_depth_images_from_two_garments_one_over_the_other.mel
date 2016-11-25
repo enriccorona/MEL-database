@@ -1,0 +1,159 @@
+//Import first clothing:
+
+string $cloth = "Jeans";
+file -import "/Users/ecorona/Downloads/jeans.obj";
+setAttr "defaultRenderGlobals.imageFormat" 32;
+
+// Select first clothing: 
+
+select -r $cloth ;
+
+// Set first clothing to ncloth:
+
+createNCloth 0;
+setAttr "nClothShape1.stretchResistance" 1;
+setAttr "nClothShape1.compressionResistance" 0.1;
+setAttr "nClothShape1.bendResistance" 0.025;
+
+int $k[] = `polyEvaluate -vertex $cloth`;
+
+//Import second clothing:
+
+string $cloth2 = "null_";
+file -import "/Users/ecorona/Documents/Clothes/Coats/Coat1original.obj";
+setAttr "null_.scaleX" 70;
+setAttr "null_.scaleY" 70;
+setAttr "null_.scaleZ" 70;
+
+// Select second clothing and prepare it: 
+
+select -r $cloth2 ;
+polyCleanupArgList 3 { "0","1","1","0","0","0","0","0","0","1e-05","1","1e-05","0","1e-05","0","1","0" };
+select -r $cloth2 ;
+polyReduce -ver 1 -trm 0 -p 70 -vct 0 -tct 0 -shp 0 -keepBorder 1 -keepMapBorder 1 -keepColorBorder 1 -keepFaceGroupBorder 1 -keepHardEdge 1 -keepCreaseEdge 1 -keepBorderWeight 0.5 -keepMapBorderWeight 0.5 -keepColorBorderWeight 0.5 -keepFaceGroupBorderWeight 0.5 -keepHardEdgeWeight 0.5 -keepCreaseEdgeWeight 0.5 -useVirtualSymmetry 0 -symmetryTolerance 0.01 -sx 0 -sy 1 -sz 0 -sw 0 -preserveTopology 1 -keepQuadsWeight 1 -vertexMapName "" -replaceOriginal 1 -cachingReduce 1 -ch 1 "null_";
+select -r null_ ;
+sets -e -forceElement lambert2SG;
+
+// Set second clothing to ncloth:
+
+createNCloth 0;
+setAttr "nClothShape2.stretchResistance" 1.5;
+setAttr "nClothShape2.compressionResistance" 0.5;
+setAttr "nClothShape2.bendResistance" 0.1;
+
+int $k2[] = `polyEvaluate -vertex $cloth2`;
+
+// Create 36 cameras:
+
+for( $i=0; $i<36; ++$i){
+    camera -centerOfInterest 5 -focalLength 35 -lensSqueezeRatio 1 -cameraScale 1 -horizontalFilmAperture 1.41732 -horizontalFilmOffset 0 -verticalFilmAperture 0.94488 -verticalFilmOffset 0 -filmFit Fill -overscan 1 -motionBlur 0 -shutterAngle 144 -nearClipPlane 0.1 -farClipPlane 10000 -orthographic 0 -orthographicWidth 30 -panZoomEnabled 0 -horizontalPan 0 -verticalPan 0 -zoom 1; objectMoveCommand; cameraMakeNode 1 "";
+    float $x = 150*cos (($i*10)*3.14159/180);
+    float $y = 150*sin (($i*10)*3.14159/180);
+    move -r $x 0 $y;
+    float $rotation = (90 - $i*10);
+    rotate -r -os -fo 0 $rotation 0;
+    string $instruction = "cameraShape"+($i+1) + ".mask";
+    setAttr $instruction 0;
+    string $instruction = "cameraShape"+($i+1) + ".locatorScale";
+    setAttr $instruction 10;
+}
+
+// Create DepthLayer
+
+createRenderLayer -noRecurse -name DepthLayer  -global;
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+// Now by hand:
+// Channel Box / Layer Editor TAB -> Right click on DepthLayer -> Attributes -> Presets -> Luminance Depth
+// Now, rather execute:
+
+    disconnectAttr samplerInfo1.cameraNearClipPlane setRange1.oldMinX;
+    disconnectAttr samplerInfo1.cameraFarClipPlane setRange1.oldMaxX;
+
+    setAttr "setRange1.oldMinX" 110;
+    setAttr "setRange1.oldMaxX" 180;
+    setAttr "setRange1.oldMinY" 0;
+    setAttr "setRange1.oldMaxY" 0; 
+    setAttr "setRange1.oldMinZ" 0;
+    setAttr "setRange1.oldMaxZ" 0;
+    
+// Or by hand: select setRange1 Tab -> Right click on Old Min -> Break connection, write 110; Right click on Old Max -> Break connection, write 180; 
+// Max could be 6500 to have an output of milimeters
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+//Setting drag:
+
+$aire = 0;
+drag -pos 0 0 0 -m 0.05 -att 1 -dx 0 -dy 0 -dz 0 -ud 0  -mxd -1  -vsh none -vex 0 -vof 0 0 0 -vsw 360 -tsr 0.5 ;
+
+//Start the captures:
+$x2 = 1546
+
+for( $x = 0; $x < 2; ++$x){ //Condition: $x<$k[0]
+
+    currentTime 0 ;
+    string $instruction = $cloth+".vtx["+$x + "]";
+    float $pos[] = `pointPosition $instruction`;
+    select -r $cloth;
+    move -r (-1*$pos[0]) (-30-1*$pos[1]) (-1*$pos[2]) ;
+    select -r $cloth.vtx[$x];
+
+// Transform constraint:
+
+    createNConstraint transform 0;
+
+// Move second cloth to the middle+20:
+
+    string $instruction = $cloth2+".vtx["+$x2 + "]";
+    float $pos[] = `pointPosition $instruction`;
+    select -r $cloth2;
+    move -r (-1*$pos[0]) (20-1*$pos[1]) (-1*$pos[2]) ;
+    select -r $cloth2.vtx[$x2] ;
+
+// Transform constraint:
+
+    createNConstraint transform 0;
+
+// Set local wind to start for the first cloth
+
+    setAttr "nClothShape2.localWindY" 35;
+
+// Setting drag if there is.
+
+    if($aire == 1){
+        setAttr "dragField1.magnitude" -40;
+    }
+
+// Canviar el valor del temps: (S'ha de fer d'un en un)
+
+    for( $t=0; $t<300; ++$t){ // t<660 would be enough
+        currentTime $t ;
+        if ($t <= 250 && $t%5 == 0){
+            select dynamicConstraint1;
+            move -r 0 1 0;
+      //      select dynamicConstraint2;
+        //    move -r 0 -1 0;
+        }else if ($t ==251){
+            setAttr "nClothShape2.localWindY" 0;
+        }
+        if ($aire == 1 && $t == 100){
+            setAttr "dragField1.magnitude" 0;
+        }
+    }
+    
+    for( $c=1; $c<=36; ++$c){
+        string $cam = "camera" + $c;
+        string $final_name = "/Users/ecorona/Documents/Database/" + $cloth + "_" + $x + "_" + $c + "proba3.tif";
+        render -layer DepthLayer $cam; //render -layer DepthLayer $cam;
+        render -layer ColorLayer $cam;
+        sysFile -move $final_name "/Users/ecorona/Documents/maya/projects/default/images/tmp/DepthLayer/untitled.tif";
+    }
+    
+    select -r dynamicConstraint2 ;
+    doDelete;
+    select -r dynamicConstraint1 ;
+    doDelete;
+}
