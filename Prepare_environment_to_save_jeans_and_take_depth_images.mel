@@ -1,15 +1,15 @@
-//Importar pantalons:
+//Import jeans
 
 string $cloth = "Jeans";
 file -import "/Users/ecorona/Downloads/jeans.obj";
 setAttr "defaultRenderGlobals.imageFormat" 4;
 string $cloth2 = $cloth
 
-// Seleccionar pantalons: 
+// Select jeans
 
 select -r $cloth ;
 
-// Canviar pantalons a ncloth:
+// Transform jeans to ncloth
 
 createNCloth 0;
 setAttr "nClothShape1.stretchResistance" 1;
@@ -70,7 +70,7 @@ $fileid = fopen("/Users/ecorona/Documents/Database/"+$cloth2+".csv");
 
 for( $x = 0; $x < size($vertics_T_Shirt_1e); $x = $x+1){ //Condition: $x<$k[0]
 
-// Move jeans to the middle:
+// Move jeans to the center:
     currentTime 1;
     string $instruction = $cloth+".vtx[" + $vertics_T_Shirt_1e[$x] + "]";
     float $pos[] = `pointPosition $instruction`;
@@ -88,7 +88,7 @@ for( $x = 0; $x < size($vertics_T_Shirt_1e); $x = $x+1){ //Condition: $x<$k[0]
         setAttr "dragField1.magnitude" -40;
     }
 
-// Canviar el valor del temps: (S'ha de fer d'un en un)
+// Move on in time
 
     for( $t=2; $t<1000; ++$t){
         currentTime $t ;
@@ -105,7 +105,7 @@ for( $x = 0; $x < size($vertics_T_Shirt_1e); $x = $x+1){ //Condition: $x<$k[0]
         $direction = `render  $cam`; //render -layer DepthLayer $cam;
         sysFile -move $final_name $direction;
 
-//Vertex 1 es 1018, per samarreta es 1146, Jumper 2733
+//Vertex 1 is 1018 for jeans, T-shirt's is 1146, Jumper's is 2733
         string $instruction = $cloth + ".vtx[1018]"; 
         $Vertex1_orientation = `polyNormalPerVertex -q -xyz $instruction`; 
         string $instruction = $cloth+".vtx[2733]";

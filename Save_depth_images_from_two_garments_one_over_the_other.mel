@@ -105,7 +105,7 @@ for( $x = 0; $x < 2; ++$x){ //Condition: $x<$k[0]
 
     createNConstraint transform 0;
 
-// Move second cloth to the middle+20:
+// Move second cloth to the center+20:
 
     string $instruction = $cloth2+".vtx["+$x2 + "]";
     float $pos[] = `pointPosition $instruction`;
@@ -127,7 +127,7 @@ for( $x = 0; $x < 2; ++$x){ //Condition: $x<$k[0]
         setAttr "dragField1.magnitude" -40;
     }
 
-// Canviar el valor del temps: (S'ha de fer d'un en un)
+// Move on in time
 
     for( $t=0; $t<300; ++$t){ // t<660 would be enough
         currentTime $t ;

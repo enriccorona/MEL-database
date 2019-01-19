@@ -1,15 +1,15 @@
-//Importar pantalons:
+//Import jeans
 
 string $cloth = "Jeans";
 file -import "/Users/ecorona/Downloads/jeans.obj";
 setAttr "defaultRenderGlobals.imageFormat" 4;
 string $cloth2 = $cloth
 
-// Seleccionar pantalons: 
+// Select jeans
 
 select -r $cloth ;
 
-// Canviar pantalons a ncloth:
+// Transform jeans to ncloth
 
 createNCloth 0;
 setAttr "nClothShape1.stretchResistance" 1;

@@ -1,4 +1,4 @@
-// Proces to save images and interesting points in maya, for jeans 1:
+// Process to save images and interesting points in maya, for jeans 1:
 //point1 = 24;
 //point2 = 487;
 //face1_approach = 918;
@@ -34,7 +34,7 @@ for( $x = 0; $x < size($vertics_Jeans1); $x = $x+1){ //Condition: $x<$k[0]
         setAttr "dragField1.magnitude" -40;
     }
 
-// Canviar el valor del temps: (S'ha de fer d'un en un)
+// Move on in time
 
     for( $t=2; $t<500; ++$t){
         currentTime $t ;
@@ -51,7 +51,7 @@ for( $x = 0; $x < size($vertics_Jeans1); $x = $x+1){ //Condition: $x<$k[0]
         $direction = `render  $cam`; //render -layer DepthLayer $cam;
         sysFile -move $final_name $direction;
 
-//Primer punt:
+//Let's get first point:
         // Posicio x,y,z
         float $pos1[] = `pointPosition Jeans.vtx[487]`;
         
@@ -69,7 +69,7 @@ for( $x = 0; $x < size($vertics_Jeans1); $x = $x+1){ //Condition: $x<$k[0]
         $approach_y1 = float($buffer[3]);
         $approach_z1 = float($buffer[4]);
         
-//Segon punt:
+//Let's get second point:
         // Posicio x,y,z
         float $pos2[] = `pointPosition Jeans.vtx[24]`;
         
@@ -88,7 +88,7 @@ for( $x = 0; $x < size($vertics_Jeans1); $x = $x+1){ //Condition: $x<$k[0]
         $approach_z2 = float($buffer[4]);
         
         
-        // Guardem tot en l'arxiu csv:
+// Save info in csv file:
         fprint $fileid($x+","+$c+","+$pos1[0]+","+$pos1[1]+","+$pos1[2]+","+$orientation_x1+","+$orientation_y1+","+$orientation_z1+","+$approach_x1+","+$approach_y1+","+$approach_z1+","+$pos2[0]+","+$pos2[1]+","+$pos2[2]+","+$orientation_x2+","+$orientation_y2+","+$orientation_z2+","+$approach_x2+","+$approach_y2+","+$approach_z2+"\n");
 
                 }
